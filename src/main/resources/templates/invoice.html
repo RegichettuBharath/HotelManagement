@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Invoice</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+
+    h1 {
+       background-color: pink;
+        text-align: center;
+       
+        
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        margin-top: 10px;
+        cursor: pointer;
+        margin-right: 30px;
+    }
+
+    p {
+        margin-top: 10px;
+    }
+    
+    
+</style>
+
+</head>
+<body>
+    <h1>Create Invoice</h1>
+<form id="invoiceForm" action="/web/invoices/create" method="post" th:object="${invoice}" onsubmit="return validateForm()">
+    <table border="1" id="invoiceTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Total Amount</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+       <tbody>
+    <tr th:each="invoiceDetail, rowStat : *{invoiceDetailsList}">
+        <td>
+            <select th:field="*{invoiceDetailsList[__${rowStat.index}__].item}" name="invoiceDetailsList[__${rowStat.index}__].item.id">
+                <option th:each="item : ${items}" th:value="${item.id}" th:text="${item.itemName}" th:selected="${item.id eq invoiceDetail.item.id}"></option>
+            </select>
+        </td>
+        <td>
+            <input type="text" th:field="*{invoiceDetailsList[__${rowStat.index}__].itemName}" readonly th:value="${invoiceDetail.itemName}" name="invoiceDetailsList[__${rowStat.index}__].itemName">
+        </td>
+        <td>
+            <input type="number" th:field="*{invoiceDetailsList[__${rowStat.index}__].quantity}" min="0" name="invoiceDetailsList[__${rowStat.index}__].quantity" required th:value="${invoiceDetail.quantity}">
+        </td>
+        <td>
+            <input type="number" step="0.01" th:field="*{invoiceDetailsList[__${rowStat.index}__].totalAmount}" readonly name="invoiceDetailsList[__${rowStat.index}__].totalAmount" th:value="${invoiceDetail.totalAmount}">
+        </td>
+        <td>
+            <button type="button" onclick="removeRow(this)" style="color: white; background-color: red; border: none;">Remove</button>
+        </td>
+        <td>
+             <input type="hidden" th:field="*{invoiceDetailsList[__${rowStat.index}__].price}" name="invoiceDetailsList[__${rowStat.index}__].price" value="0.0">
+        </td>
+    </tr>
+</tbody>
+
+    </table>
+    <button type="button" onclick="addRow()">Add Item</button>
+    <h4>Total Amount: <span id="totalAmount" th:text="${invoice.totalAmount}">0.0</span></h4>
+    <button type="submit">Create Invoice</button>
+</form>
+
+<script th:inline="javascript">
+    var items = /*[[ ${items} ]]*/ [];
+    var rowIndex = 0; 
+
+    function addRow() {
+        var table = document.getElementById("invoiceTable").getElementsByTagName('tbody')[0];
+        
+        if (rowIndex > 0) {
+            var lastRow = table.rows[rowIndex - 1];
+            var lastItem = lastRow.cells[0].getElementsByTagName('select')[0].value;
+            var lastQuantity = lastRow.cells[2].getElementsByTagName('input')[0].value;
+
+            if (!lastItem || !lastQuantity || lastQuantity <= 0) {
+                alert("Please select a valid item and quantity before adding a new row.");
+                return;
+            }
+        }
+        var newRow = table.insertRow(table.rows.length);
+
+        var cell1 = newRow.insertCell(0);
+        var cell2 = newRow.insertCell(1);
+        var cell3 = newRow.insertCell(2);
+        var cell4 = newRow.insertCell(3);
+        var cell5 = newRow.insertCell(4);
+
+       
+        var idSelect = document.createElement("select");
+        idSelect.name = "invoiceDetailsList[" + rowIndex + "].item.id";
+        idSelect.required = true;
+        idSelect.onchange = function() { updateItemDetails(newRow); };
+
+        
+        idSelect.add(new Option("Select ID", ""));
+       
+        for (var i = 0; i < items.length; i++) {
+            var option = document.createElement("option");
+            option.value = items[i].id;
+            option.text = items[i].id;
+            idSelect.add(option);
+        }
+
+        cell1.appendChild(idSelect);
+        cell2.innerHTML = '<input type="text" name="invoiceDetailsList[' + rowIndex + '].itemName" readonly>';
+        var quantityInput = document.createElement("input");
+        quantityInput.type = "number";
+        quantityInput.name = "invoiceDetailsList[" + rowIndex + "].quantity";
+        quantityInput.min = "0";  
+        quantityInput.value = "0";  
+        quantityInput.required = true;
+        quantityInput.onchange = function() { updateTotalAmount(newRow); };
+        quantityInput.oninput = function() { updateTotalAmount(newRow); };
+        cell3.appendChild(quantityInput);
+        cell4.innerHTML = '<input type="number" name="invoiceDetailsList[' + rowIndex + '].totalAmount" step="0.01" min="0.01" readonly>';
+        cell5.innerHTML = '<button type="button" onclick="removeRow(this)">Remove</button>';
+        
+
+        var priceInput = document.createElement("input");
+        priceInput.type = "hidden";
+        priceInput.name = "invoiceDetailsList[" + rowIndex + "].price";
+        priceInput.value = "0.0";
+        cell5.appendChild(priceInput);
+
+        rowIndex++;
+    }
+
+    function updateItemDetails(row) {
+        var cells = row.getElementsByTagName('td');
+        var id = cells[0].getElementsByTagName('select')[0].value;
+        if (id) {
+            var item = items.find(item => item.id == id);
+            cells[1].getElementsByTagName('input')[0].value = item.itemName;
+           
+            cells[4].getElementsByTagName('input')[0].value = item.price;
+            updateTotalAmount(row);
+        }
+    }
+
+    function updateTotalAmount(row) {
+        var cells = row.getElementsByTagName('td');
+        var quantity = cells[2].getElementsByTagName('input')[0].value;
+        var price = cells[4].getElementsByTagName('input')[0].value;
+
+        if (quantity && price) {
+            var subtotal = parseFloat(quantity) * parseFloat(price);
+            cells[3].getElementsByTagName('input')[0].value = subtotal.toFixed(2);
+            calculateTotal();
+        }
+    }
+
+
+    function removeRow(button) {
+        var confirmation = confirm("Are you sure you want to remove this item?");
+        
+        if (confirmation) {
+            var row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            calculateTotal();
+        } else {
+           
+        }
+    }
+
+
+    function calculateTotal() {
+        var table = document.getElementById("invoiceTable").getElementsByTagName('tbody')[0];
+        var rows = table.getElementsByTagName('tr');
+        var totalAmount = 0.0;
+
+        for (var i = 0; i < rows.length; i++) {
+            var cells = rows[i].getElementsByTagName('td');
+            var subtotalInput = cells[3].getElementsByTagName('input')[0];
+            var subtotal = parseFloat(subtotalInput.value);
+            totalAmount += isNaN(subtotal) ? 0 : subtotal;
+        }
+
+        document.getElementById("totalAmount").innerText = totalAmount.toFixed(2);
+    }
+    
+    function validateForm() {
+        var table = document.getElementById("invoiceTable").getElementsByTagName('tbody')[0];
+        var rows = table.getElementsByTagName('tr');
+
+        if (rows.length === 0) {
+            alert("Please add at least one item to the invoice.");
+            return false;
+        }
+
+        for (var i = 0; i < rows.length; i++) {
+            var cells = rows[i].getElementsByTagName('td');
+            var item = cells[0].getElementsByTagName('select')[0].value;
+            var quantity = cells[2].getElementsByTagName('input')[0].value;
+
+            if (!item || !quantity || quantity <= 0) {
+                alert("Please select a valid item and quantity for each row.");
+                return false; 
+            }
+        }
+
+        return true; 
+    }
+
+
+</script>

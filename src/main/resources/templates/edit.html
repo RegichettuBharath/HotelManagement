@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Item</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh; 
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .required::after {
+            content: '*';
+            color: red;
+        }
+
+        input {
+            width: 250px; 
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        a {
+            margin-top: 20px;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Edit Item</h2>
+    <form action="/web/items/update/{id}" method="post" th:object="${item}" th:action="@{/web/items/update/{id}(id=${item.id})}">
+        <div>
+            <label for="itemName" class="required">Item Name:</label>
+            <input type="text" id="itemName" name="itemName" th:field="*{itemName}" required>
+            <div th:if="${#fields.hasErrors('itemName')}" class="error-message" th:errors="*{itemName}"></div>
+            <p th:text="${errorMessage}" class="error-message"></p>
+        </div><br>
+        <div>
+            <label for="price" class="required">Price:</label>
+            <input type="number" step="0.01" id="price" name="price" th:field="*{price}" required>
+            <div th:if="${#fields.hasErrors('price')}" class="error-message" th:errors="*{price}"></div>
+            
+        </div><br>
+        <button type="submit">Update</button>
+    </form>
+    
+</body>
+</html>

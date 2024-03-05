@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>FOOD ORDER</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 50vh;
+        }
+    </style>
+</head>
+<body>
+    <h1>List of Items</h1>
+    <table border="1" th:if="${items}">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item Name</th>
+                <th>Price</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item : ${items}">
+                <td th:text="${item.id}"></td>
+                <td th:text="${item.itemName}"></td>
+                <td th:text="${item.price}"></td>
+                <td>
+                    <form th:action="@{/web/items/edit/{id}(id=${item.id})}" method="get">
+                        <button type="submit">EDIT</button>
+                    </form>
+                </td>
+                <td>
+                    <form th:action="@{/web/items/delete/{id}(id=${item.id})}" method="get">
+                        <button type="submit">DELETE</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

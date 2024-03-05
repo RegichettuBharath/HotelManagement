@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Details</title>
+   <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        .invoice-container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            margin: 50px auto;
+            max-width: 600px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .invoice-header {
+            border-bottom: 1px solid #ccc;
+            padding: 15px;
+            background-color: #f0f0f0;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .invoice-table th, .invoice-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            background-color: #f9f9f9;
+        }
+
+        .center-button {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+    </style>
+</head>
+<body>
+    <div th:if="${showSuccessPage}" class="invoice-container">
+        <div class="invoice-header">
+            <h2>Invoice Details</h2>
+        </div>
+
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Invoice No</th>
+                    <th>Invoice Date</th>
+                    <th>Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td th:text="${invoice.invoiceNo}"></td>
+                    <td th:text="${invoice.invoiceDate}"></td>
+                    <td th:text="${invoice.totalAmount}"></td>
+                </tr>
+            </tbody>
+        </table><br>
+
+        <h3>Order's Information</h3>
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="detail : ${invoiceDetailsList}">
+                    <td th:text="${detail.itemName}"></td>
+                    <td th:text="${detail.quantity}"></td>
+                    <td th:text="${detail.price}"></td>
+                    <td th:text="${detail.totalAmount}"></td>
+                </tr>
+            </tbody>
+        </table>       
+    </div>
+    <p class="center-button"><button onclick="window.print()" >Print</button></p>
+    <script>
+        function showPopup() {
+            var popup = document.createElement('div');
+            popup.textContent = 'Invoice Created Successfully!';
+            popup.style.position = 'fixed';
+            popup.style.top = '0';
+            popup.style.left = '50%';
+            popup.style.transform = 'translateX(-50%)';
+            popup.style.padding = '20px';
+
+            document.body.appendChild(popup);
+
+            setTimeout(function () {
+                document.body.removeChild(popup);
+            }, 3000);
+        }
+        showPopup();
+    </script>
+</body>
+</html>
+
+
